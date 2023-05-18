@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Articles } from './entities/article.entity';
 import { Repository } from 'typeorm';
+import { ElasticsearchService } from '@nestjs/elasticsearch';
 
 @Injectable()
 export class AppService {
   constructor(
     @InjectRepository(Articles) private articleRepository: Repository<Articles>,
+    private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
   async insertArticles() {
@@ -29,6 +31,14 @@ export class AppService {
     }
   }
 
+  async getArticles() {
+    try {
+      return await this.articleRepository.find();
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async searchArticles(searchText: string) {
     const query = `select * 
                     from articles
@@ -39,6 +49,43 @@ export class AppService {
 
     try {
       return this.articleRepository.query(query);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createDocument() {
+    try {
+      const articles = await this.getArticles();
+
+      console.log('인덱스 시작');
+
+      for (const article of articles) {
+        await this.elasticsearchService.index({
+          index: 'articles',
+          body: article,
+        });
+      }
+
+      return;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async elasticsearchArticles(searchText: string) {
+    try {
+      const articles = await this.elasticsearchService.search({
+        index: 'articles',
+        query: {
+          query_string: {
+            query: `*${searchText}*`,
+            fields: ['title', 'author', 'content', 'category'],
+          },
+        },
+        size: 10000,
+      });
+      return articles.hits;
     } catch (error) {
       throw error;
     }

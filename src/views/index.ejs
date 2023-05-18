@@ -60,4 +60,30 @@
         console.log(err);
       });
   }
+
+  function elasticsearch() {
+    const searchText = document.getElementById('search-input').value;
+
+    axios
+      .get(`/elasticsearch?text=${searchText}`)
+      .then((res) => {
+        console.log(res.data);
+
+        const { hits } = res.data;
+
+        const html = hits.map((hit) => {
+          return `<tr>
+                        <td>${hit._source.id}</td>
+                        <td>${hit._source.title}</td>
+                        <td>${hit._source.author}</td>
+                        <td>${hit._source.createdAt}</td>
+                    <tr>`;
+        });
+
+        document.getElementById('articles').innerHTML = html.join('');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 </script>
