@@ -28,4 +28,19 @@ export class AppService {
       throw error;
     }
   }
+
+  async searchArticles(searchText: string) {
+    const query = `select * 
+                    from articles
+                    where title like '%${searchText}%'
+                    or author like '%${searchText}%'
+                    or content like '%${searchText}%'
+                    or category like '%${searchText}%'`;
+
+    try {
+      return this.articleRepository.query(query);
+    } catch (error) {
+      throw error;
+    }
+  }
 }

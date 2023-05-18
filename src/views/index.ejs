@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ElasticSearch Test</title>
+
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- css -->
+    <link rel="stylesheet" href="/css/index.css" />
+  </head>
+  <body>
+    <div class="search-wrap">
+      <span>검색 : </span>
+      <input type="text" id="search-input" />
+      <button type="button" onclick="search()">검색</button>
+    </div>
+
+    <h1>검색 결과 보기</h1>
+    <table id="table" class="table" border="1">
+      <thead>
+        <tr>
+          <th>글 번호</th>
+          <th>제목</th>
+          <th>작성자</th>
+          <th>작성날짜</th>
+        </tr>
+      </thead>
+      <tbody id="articles"></tbody>
+    </table>
+  </body>
+</html>
+
+<script>
+  function search() {
+    const searchText = document.getElementById('search-input').value;
+
+    axios
+      .get(`/search?text=${searchText}`)
+      .then((res) => {
+        const articles = res.data;
+
+        const html = articles.map((article) => {
+          return `<tr>
+                        <td>${article.id}</td>
+                        <td>${article.title}</td>
+                        <td>${article.author}</td>
+                        <td>${article.createdAt}</td>
+                    <tr>`;
+        });
+
+        document.getElementById('articles').innerHTML = html.join('');
+
+        console.log(articles.length);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+</script>
